@@ -60,6 +60,10 @@ function doGet(e) {
       return cors({ ok: true, designs: rows });
     }
 
+    if (action === "ping") {
+      return cors({ ok: true, message: "Surat Textile Studio DB ready", time: new Date().toISOString() });
+    }
+
     if (action === "load") {
       var id = e.parameter.id;
       for (var j = 1; j < data.length; j++) {

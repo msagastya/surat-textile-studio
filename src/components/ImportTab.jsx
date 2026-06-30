@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
-import { T, btn, lbl, card, h2s, sel } from "../styles/theme.js";
+import { T, btn, lbl, card, h2s, accentCard } from "../styles/theme.js";
+import { useBreakpoint } from "../hooks/useBreakpoint.js";
 
 // Smart defaults based on fabric type
 const FABRIC_PRESETS = {
@@ -57,13 +58,17 @@ function StepCard({ n, title, done, children }) {
   );
 }
 
+const qColor = (q) => q >= 85 ? "#34c97a" : q >= 70 ? "#e4a832" : "#1fc8c0";
+
 export default function ImportTab({
   image, loadImage, imageDimensions, fabricType, zariType,
   colorCount, setColorCount, fab, epi, ppi, gsm, denier,
   processing, extractColors, aiLoading, runAI, palette, repeatW, repeatH,
+  geminiData, geminiLoading, scanImage,
 }) {
   const fileRef = useRef(null);
   const [mode, setMode] = useState("auto");
+  const { isMobile, isTablet } = useBreakpoint();
 
   const preset = FABRIC_PRESETS[fabricType] || { colors: 12, hint: "Adjust color count for best results" };
 
@@ -77,7 +82,7 @@ export default function ImportTab({
   };
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 24 }}>
+    <div className="grid-sidebar">
 
       {/* ── Drop zone ── */}
       <div>
@@ -88,7 +93,7 @@ export default function ImportTab({
           style={{
             border: `2px dashed ${image ? T.goldDim : T.border}`,
             borderRadius: 16,
-            minHeight: 420,
+            minHeight: isMobile ? 200 : isTablet ? 280 : 420,
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
@@ -148,10 +153,10 @@ export default function ImportTab({
         {/* Mode selector */}
         <div style={card}>
           <div style={h2s}>Workflow Mode</div>
-          <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+          <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: isMobile ? "wrap" : "nowrap" }}>
             <ModeChip id="auto"   label="Auto"   desc="One click — smart defaults" active={mode === "auto"}   onClick={() => setMode("auto")} />
             <ModeChip id="guided" label="Guided"  desc="Suggestions + few tweaks"  active={mode === "guided"} onClick={() => setMode("guided")} />
-            <ModeChip id="manual" label="Manual"  desc="Full control of all settings" active={mode === "manual"} onClick={() => setMode("manual")} />
+            <ModeChip id="manual" label="Manual"  desc="Full control"              active={mode === "manual"} onClick={() => setMode("manual")} />
           </div>
 
           {/* Context tip */}
@@ -290,13 +295,75 @@ export default function ImportTab({
                 </div>
               ))}
             </div>
-
-            {/* Color preview strip */}
             <div style={{ display: "flex", height: 10, borderRadius: 6, overflow: "hidden", marginTop: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.4)" }}>
               {palette.map((c, i) => (
                 <div key={i} style={{ flex: c.percentage || 1, background: c.hex }} title={`${c.hex} · ${c.percentage?.toFixed(1)}%`} />
               ))}
             </div>
+          </div>
+        )}
+
+        {/* ── Gemini Vision scan card ── */}
+        {image && (
+          <div style={{ ...accentCard("#6b7ff5"), padding:16 }}>
+            <div style={{ color:"#6b7ff5", fontFamily:"var(--font-mono)", fontSize:9, fontWeight:700,
+              letterSpacing:"2px", textTransform:"uppercase", marginBottom:12,
+              paddingLeft:8, borderLeft:"2px solid #6b7ff5" }}>
+              Gemini Vision
+            </div>
+
+            {geminiLoading && (
+              <div style={{ textAlign:"center", padding:"16px 0" }}>
+                <div style={{ display:"flex", gap:6, justifyContent:"center", marginBottom:10 }}>
+                  {["#6b7ff5","#bf6ff5","#1fc8c0"].map((c,i)=>(
+                    <div key={i} style={{ width:8, height:8, borderRadius:"50%", background:c,
+                      animation:`ds-pulse 1.2s ${i*0.2}s ease-in-out infinite` }} />
+                  ))}
+                </div>
+                <div style={{ color:T.muted, fontSize:10 }}>Scanning fabric...</div>
+                <style>{`@keyframes ds-pulse{0%,100%{opacity:.2;transform:scale(.7)}50%{opacity:1;transform:scale(1.3)}}`}</style>
+              </div>
+            )}
+
+            {!geminiLoading && !geminiData && (
+              <button onClick={scanImage} style={{ ...btn("indigo"), width:"100%", height:36 }}>
+                Scan Image (AI Vision)
+              </button>
+            )}
+
+            {!geminiLoading && geminiData && (
+              <>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
+                  <span style={{ color:qColor(geminiData.qualityScore), fontWeight:700, fontSize:12 }}>
+                    Quality {geminiData.qualityScore}/100
+                  </span>
+                  <span style={{ color:T.muted, fontSize:9 }}>{Math.round(geminiData.confidence*100)}% conf.</span>
+                </div>
+                {[
+                  ["Fabric",  geminiData.fabricType,     T.gold],
+                  ["Pattern", geminiData.pattern,        T.violet],
+                  ["Zari",    geminiData.zariType,       T.gold],
+                  ["Market",  geminiData.marketTier,     T.emerald],
+                  ["Use",     geminiData.suggestedUse,   T.textDim],
+                ].map(([k,v,c])=>(
+                  <div key={k} style={{ display:"flex", justifyContent:"space-between", padding:"4px 0",
+                    borderBottom:`1px solid ${T.border}`, fontSize:10 }}>
+                    <span style={{ color:T.muted }}>{k}</span>
+                    <span style={{ color:c, fontWeight:600, maxWidth:"60%", textAlign:"right" }}>{v || "—"}</span>
+                  </div>
+                ))}
+                {geminiData.dominantColors?.length > 0 && (
+                  <div style={{ display:"flex", height:10, borderRadius:4, overflow:"hidden", marginTop:10 }}>
+                    {geminiData.dominantColors.map((c,i)=>(
+                      <div key={i} style={{ flex:c.pct||1, background:c.hex }} title={c.name} />
+                    ))}
+                  </div>
+                )}
+                <button onClick={scanImage} style={{ ...btn("ghost"), width:"100%", height:28, fontSize:9, marginTop:10 }}>
+                  Re-scan
+                </button>
+              </>
+            )}
           </div>
         )}
       </div>

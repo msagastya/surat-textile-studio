@@ -1,10 +1,12 @@
 import { useState, useRef, useCallback } from "react";
+import { useBreakpoint } from "./hooks/useBreakpoint.js";
 import { T } from "./styles/theme.js";
 import { SURAT_FABRICS, SURAT_MARKETS, ZARI_TYPES, ZARI_COST_BUMP } from "./data/suratFabrics.js";
 import { WEAVE_PRESETS } from "./data/weavePresets.js";
-import { kMeansColors, computeUsage, rgbToHex, samplePixels, hexToRgb } from "./utils/colorUtils.js";
+import { extractPalette, detectRepeat, hexToRgb, analyzeHarmony } from "./utils/colorUtils.js";
 import { buildJC5, buildEP, buildJSON, buildCSV, buildWIF, downloadFile } from "./utils/exportFormats.js";
 import { imageToBase64, runFabricAnalysis, runAIRecolor as aiRecolorCall } from "./utils/aiService.js";
+import { scanTextileImage } from "./utils/geminiApi.js";
 import { genThreading, genTieup, genTreadling } from "./utils/weaveUtils.js";
 
 import Header from "./components/Header.jsx";
@@ -80,6 +82,13 @@ export default function App() {
   const [marketSuggestion, setMarketSuggestion] = useState("");
   const [designNotes, setDesignNotes] = useState("");
 
+  // ── Gemini vision scan ─────────────────────────────────────────────────────
+  const [geminiData, setGeminiData] = useState(null);
+  const [geminiLoading, setGeminiLoading] = useState(false);
+
+  // ── Color harmony analysis ─────────────────────────────────────────────────
+  const [harmonyData, setHarmonyData] = useState(null);
+
   // ── Colorways ──────────────────────────────────────────────────────────────
   const [colorways, setColorways] = useState([]);
 
@@ -115,6 +124,7 @@ export default function App() {
   const loadImage = useCallback((file) => {
     const url = URL.createObjectURL(file);
     setImage(url);
+    setGeminiData(null); // clear previous scan when new image loaded
     const img = new Image();
     img.onload = () => {
       setImgEl(img);
@@ -129,44 +139,42 @@ export default function App() {
     setTimeout(() => {
       const cv = canvasRef.current;
       const ctx = cv.getContext("2d");
-      cv.width = imgEl.naturalWidth;
-      cv.height = imgEl.naturalHeight;
-      ctx.drawImage(imgEl, 0, 0);
-      const data = ctx.getImageData(0, 0, cv.width, cv.height).data;
-      const pixels = samplePixels(data, 4000);
-      const centers = kMeansColors(pixels, colorCount, 28);
-      const usagePct = computeUsage(pixels, centers);
+      // Cap render size at 1200px for speed while keeping accuracy
+      const MAX = 1200;
+      const scale = Math.min(MAX / imgEl.naturalWidth, MAX / imgEl.naturalHeight, 1);
+      cv.width  = Math.round(imgEl.naturalWidth  * scale);
+      cv.height = Math.round(imgEl.naturalHeight * scale);
+      ctx.drawImage(imgEl, 0, 0, cv.width, cv.height);
+      const imageData = ctx.getImageData(0, 0, cv.width, cv.height);
 
-      const pal = centers
-        .map((rgb, i) => ({
-          rgb,
-          hex: rgbToHex(...rgb),
-          percentage: usagePct[i],
-          yarnName: `Yarn ${i + 1}`,
-          weaveType: "plain",
-        }))
-        .sort((a, b) => b.percentage - a.percentage);
+      // ── k-means++ LAB extraction ──────────────────────────────────────────
+      const pal = extractPalette(imageData.data, colorCount);
       setPalette(pal);
-
-      // Seed colorways with the extracted base
+      setHarmonyData(analyzeHarmony(pal));
       setColorways([{ name: "Base Design", palette: pal.map((c) => ({ ...c })) }]);
 
-      const cands = Array.from({ length: 5 }, (_, i) => ({
-        width: Math.round(cv.width / (i + 2)),
-        height: Math.round(cv.height / (i + 2)),
-        confidence: Math.max(0.55, 0.92 - i * 0.07),
-      }));
-      setRepeatCandidates(cands);
-      setRepeatW(cands[0].width);
-      setRepeatH(cands[0].height);
+      // ── Autocorrelation repeat detection ─────────────────────────────────
+      const { repeatW: rW, repeatH: rH, candidates } = detectRepeat(
+        imageData.data, cv.width, cv.height,
+      );
+      // Scale repeat back to original image coordinates
+      const invScale = 1 / scale;
+      setRepeatCandidates(candidates.map((c) => ({
+        width:      Math.round(c.width  * invScale),
+        height:     Math.round(c.height * invScale),
+        confidence: c.confidence,
+      })));
+      setRepeatW(Math.round(rW * invScale));
+      setRepeatH(Math.round(rH * invScale));
 
+      // ── Cost estimate ─────────────────────────────────────────────────────
       const baseCost = fab.baseCost || 80;
       const zariBump = ZARI_COST_BUMP[zariType] || 0;
       setCostEstimate({ perMeter: baseCost + zariBump, gsm, epi, ppi, denier, yarns: colorCount, fabricType, market: targetMarket });
 
       setProcessing(false);
       setTab("palette");
-    }, 80);
+    }, 30);
   }, [imgEl, colorCount, fabricType, zariType, targetMarket, gsm, epi, ppi, denier, fab]);
 
   const runAI = useCallback(async () => {
@@ -184,6 +192,23 @@ export default function App() {
     }
     setAiLoading(false);
   }, [imgEl, fabricType, zariType, targetMarket, palette, epi, ppi, gsm, denier]);
+
+  const scanImage = useCallback(async () => {
+    if (!imgEl) return;
+    setGeminiLoading(true);
+    setGeminiData(null);
+    try {
+      const result = await scanTextileImage(imgEl);
+      setGeminiData(result);
+      // Auto-apply Gemini suggestions to app state
+      if (result.fabricType && SURAT_FABRICS[result.fabricType]) setFabricType(result.fabricType);
+      if (result.suggestedColorCount) setColorCount(result.suggestedColorCount);
+      if (result.zariType && result.zariType !== "Unknown") setZariType(result.zariType);
+    } catch (e) {
+      console.error("[gemini]", e.message);
+    }
+    setGeminiLoading(false);
+  }, [imgEl]);
 
   const runRecolor = useCallback(async () => {
     if (!aiColorizePrompt.trim() || !palette.length) return;
@@ -225,6 +250,8 @@ export default function App() {
     else downloadFile(buildCSV(state), `${designName}_palette.csv`, "text/csv");
   }, [designName, fabricType, zariType, targetMarket, imageDimensions, palette, weaveMatrix, weaveName, epi, ppi, gsm, denier, repeatW, repeatH, aiAnalysis, costEstimate, marketSuggestion, exportFmt, threading, tieup, treadling, numShafts, numTreadles, grid, gridW, gridH]);
 
+  const { isMobile, isTablet } = useBreakpoint();
+
   return (
     <div style={{ background: T.bg, minHeight: "100vh", color: T.text, fontFamily: "var(--font-mono)", fontSize: 13, display: "flex", flexDirection: "column" }}>
       <Header
@@ -235,15 +262,15 @@ export default function App() {
       />
 
       {/* Tab bar */}
-      <div style={{
+      <div className="tab-bar" style={{
         background: `linear-gradient(180deg, #120e1e 0%, ${T.surf} 100%)`,
         borderBottom: `1px solid ${T.border}`,
-        display: "flex", overflowX: "auto", paddingLeft: 20, flexShrink: 0,
+        flexShrink: 0,
         boxShadow: "0 2px 16px rgba(0,0,0,0.5)",
       }}>
         {TABS.map(([id, label], i) => (
           <span key={id} style={{ display: "inline-flex", alignItems: "center" }}>
-            {SEPARATORS.has(i) && (
+            {SEPARATORS.has(i) && !isMobile && (
               <span style={{ width: 1, height: 22, background: T.borderBr, margin: "0 4px", display: "inline-block", alignSelf: "center", borderRadius: 1, opacity: 0.6 }} />
             )}
             <Tab
@@ -265,7 +292,7 @@ export default function App() {
 
       <canvas ref={canvasRef} style={{ display: "none" }} />
 
-      <div style={{ padding: "28px 28px", maxWidth: 1500, margin: "0 auto", width: "100%", flex: 1 }}>
+      <div className="page-content">
         {tab === "import" && (
           <ImportTab
             image={image} loadImage={loadImage} imageDimensions={imageDimensions}
@@ -275,6 +302,7 @@ export default function App() {
             processing={processing} extractColors={extractColors}
             aiLoading={aiLoading} runAI={runAI}
             palette={palette} repeatW={repeatW} repeatH={repeatH}
+            geminiData={geminiData} geminiLoading={geminiLoading} scanImage={scanImage}
           />
         )}
 
@@ -283,6 +311,7 @@ export default function App() {
             palette={palette} setPalette={setPalette}
             editIdx={editIdx} setEditIdx={setEditIdx}
             image={image} processing={processing} extractColors={extractColors} setTab={setTab}
+            harmonyData={harmonyData}
           />
         )}
 
@@ -379,7 +408,13 @@ export default function App() {
         )}
 
         {tab === "analysis" && (
-          <AnalysisTab aiLoading={aiLoading} aiAnalysis={aiAnalysis} runAI={runAI} image={image} />
+          <AnalysisTab
+            geminiData={geminiData} geminiLoading={geminiLoading} scanImage={scanImage}
+            image={image} fabricType={fabricType} zariType={zariType}
+            palette={palette} epi={epi} ppi={ppi} gsm={gsm}
+            repeatW={repeatW} repeatH={repeatH}
+            targetMarket={targetMarket} colorCount={colorCount}
+          />
         )}
 
         {tab === "market" && (

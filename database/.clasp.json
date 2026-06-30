@@ -1,4 +1,17 @@
 {
-  "scriptId": "PASTE_YOUR_SCRIPT_ID_HERE",
-  "rootDir": "."
+  "scriptId": "1Mi9w1xaEkTNJL2uQM3ERjLR36Bv4j9uyvrgyHiw3ii38rm93GotanThX",
+  "rootDir": "",
+  "parentId": "1ByZgrvUQ7MKQ490IatHco5GlYoBB8iYdlzFupeGSWIs",
+  "scriptExtensions": [
+    ".js",
+    ".gs"
+  ],
+  "htmlExtensions": [
+    ".html"
+  ],
+  "jsonExtensions": [
+    ".json"
+  ],
+  "filePushOrder": [],
+  "skipSubdirectories": false
 }
