@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { T, btn, inp, sel, lbl, card, h2s, h2c } from "../styles/theme.js";
+import { useBreakpoint } from "../hooks/useBreakpoint.js";
 import { hexToRgb } from "../utils/colorUtils.js";
 import { reduceColors } from "../utils/weaveUtils.js";
 import Swatch from "./Swatch.jsx";
 
 export default function PaletteTab({ palette, setPalette, editIdx, setEditIdx, image, processing, extractColors, setTab, harmonyData }) {
+  const { isMobile } = useBreakpoint();
   const [reduceTarget, setReduceTarget] = useState(8);
 
   const handleReduce = () => {
@@ -15,14 +17,14 @@ export default function PaletteTab({ palette, setPalette, editIdx, setEditIdx, i
   return (
     <div>
       {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 24 }}>
+      <div className="tab-header">
         <div>
           <div style={h2s}>Color Palette</div>
           <div style={{ color: T.textDim, fontSize: 22, fontWeight: 700, fontFamily: "var(--font-serif)", marginTop: -4 }}>
             {palette.length} Yarns Extracted
           </div>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
+        <div className="tab-header-actions" style={{ display: "flex", gap: 8 }}>
           <button onClick={extractColors} disabled={!image || processing} style={btn("ghost", !image || processing)}>
             Re-extract
           </button>
@@ -37,7 +39,7 @@ export default function PaletteTab({ palette, setPalette, editIdx, setEditIdx, i
 
       {/* Color reduction bar */}
       {palette.length > 2 && (
-        <div style={{ ...card, marginBottom: 16, display: "flex", alignItems: "center", gap: 16, padding: "14px 20px" }}>
+        <div style={{ ...card, marginBottom: 16, display: "flex", alignItems: "center", gap: 16, padding: "14px 20px", flexWrap: "wrap" }}>
           <div style={{ fontSize: 9, color: T.muted, letterSpacing: 2, textTransform: "uppercase", flexShrink: 0 }}>Color Reduction</div>
           <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 12 }}>
             <span style={{ color: T.textDim, fontSize: 12, flexShrink: 0 }}>Reduce to</span>
@@ -106,7 +108,7 @@ export default function PaletteTab({ palette, setPalette, editIdx, setEditIdx, i
                 <div style={h2s}>Edit Yarn {editIdx + 1}</div>
                 <button onClick={() => setEditIdx(null)} style={btn("gold")}>✓ Done</button>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14 }}>
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4,1fr)", gap: 14 }}>
                 <div>
                   <label style={lbl}>Yarn Name</label>
                   <input style={inp} value={palette[editIdx].yarnName || ""}

@@ -152,14 +152,14 @@ export default function DrawdownTab({
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 16 }}>
+      <div className="tab-header" style={{ marginBottom: 16 }}>
         <div>
           <div style={h2c(T.crimson)}>Weave Draft · Draw-down</div>
           <div style={{ color: T.textDim, fontSize: 22, fontWeight: 700, fontFamily: "var(--font-serif)", marginTop: -4 }}>
             Threading · Tie-up · Treadling
           </div>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
+        <div className="tab-header-actions" style={{ display: "flex", gap: 8 }}>
           {["auto", "guided", "manual"].map((m) => (
             <button key={m} onClick={() => setDraftMode(m)} style={{
               ...btn(draftMode === m ? "gold" : "ghost"),

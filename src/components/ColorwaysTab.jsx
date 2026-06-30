@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { T, btn, card, h2s, sel, lbl } from "../styles/theme.js";
+import { useBreakpoint } from "../hooks/useBreakpoint.js";
 
 function contrastText(hex) {
   const r = parseInt(hex.slice(1, 3), 16) / 255;
@@ -113,6 +114,7 @@ function SwatchRow({ cw, idx, active, onActivate, onDelete, onRename, onColorCli
 }
 
 export default function ColorwaysTab({ palette, setPalette, colorways, setColorways }) {
+  const { isMobile } = useBreakpoint();
   const [busy, setBusy] = useState(false);
   const [prompt, setPrompt] = useState("");
   const [activeIdx, setActiveIdx] = useState(0);
@@ -182,19 +184,19 @@ export default function ColorwaysTab({ palette, setPalette, colorways, setColorw
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 24 }}>
+      <div className="tab-header">
         <div>
           <div style={h2s}>Colorways</div>
           <div style={{ color: T.textDim, fontSize: 22, fontWeight: 700, fontFamily: "var(--font-serif)", marginTop: -4 }}>
             {colorways.length} Variant{colorways.length !== 1 ? "s" : ""}
           </div>
         </div>
-        <div style={{ display: "flex", gap: 10 }}>
+        <div className="tab-header-actions" style={{ display: "flex", gap: 10 }}>
           <button onClick={addColorway} style={btn("dim")}>+ Add Colorway</button>
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: 24 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "300px 1fr", gap: 24 }}>
         {/* AI generator panel */}
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <div style={card}>

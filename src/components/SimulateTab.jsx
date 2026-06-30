@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState } from "react";
 import { T, card, h2s, lbl, sel, btn } from "../styles/theme.js";
+import { useBreakpoint } from "../hooks/useBreakpoint.js";
 
 function hexToRgbArr(hex) {
   const r = parseInt(hex.slice(1, 3), 16);
@@ -17,6 +18,7 @@ function blendColor(base, overlay, alpha) {
 }
 
 export default function SimulateTab({ weaveMatrix, palette, warpYarnIdx, setWarpYarnIdx, weftYarnIdx, setWeftYarnIdx }) {
+  const { isMobile } = useBreakpoint();
   const canvasRef = useRef(null);
   const [zoom, setZoom] = useState(8);
   const [tiles, setTiles] = useState(6);
@@ -122,17 +124,19 @@ export default function SimulateTab({ weaveMatrix, palette, warpYarnIdx, setWarp
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 24 }}>
+      <div className="tab-header">
         <div>
           <div style={h2s}>Fabric Simulation</div>
           <div style={{ color: T.textDim, fontSize: 22, fontWeight: 700, fontFamily: "var(--font-serif)", marginTop: -4 }}>
             Woven Cloth Preview
           </div>
         </div>
-        <button onClick={downloadSim} style={btn("dim")}>Download PNG</button>
+        <div className="tab-header-actions" style={{ display: "flex" }}>
+          <button onClick={downloadSim} style={btn("dim")}>Download PNG</button>
+        </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "240px 1fr", gap: 24 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "240px 1fr", gap: 24 }}>
         {/* Controls */}
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <div style={card}>
@@ -200,7 +204,7 @@ export default function SimulateTab({ weaveMatrix, palette, warpYarnIdx, setWarp
         {/* Canvas */}
         <div style={card}>
           <div style={h2s}>{tiles}×{tiles} Tile · {weaveMatrix?.length || 0}×{weaveMatrix?.[0]?.length || 0} repeat</div>
-          <div style={{ overflow: "auto", maxHeight: "65vh", borderRadius: 8, border: `1px solid ${T.border}`, display: "inline-block" }}>
+          <div className="canvas-scroll" style={{ maxHeight: "65vh", borderRadius: 8, border: `1px solid ${T.border}` }}>
             <canvas
               ref={canvasRef}
               style={{ display: "block", imageRendering: "pixelated" }}

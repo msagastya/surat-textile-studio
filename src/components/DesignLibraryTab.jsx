@@ -217,14 +217,14 @@ export default function DesignLibraryTab({
   return (
     <div>
       {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 20 }}>
+      <div className="tab-header" style={{ marginBottom: 20 }}>
         <div>
           <div style={{ ...h2s, color: T.teal, borderLeftColor: T.teal }}>Design Library</div>
           <div style={{ color: T.textDim, fontSize: 22, fontWeight: 700, fontFamily: "var(--font-serif)", marginTop: -4 }}>
             {library.length} designs · {storageUsed} MB local
           </div>
         </div>
-        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+        <div className="tab-header-actions" style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
           <CloudBadge status={cloudStatus} />
           <label style={{ ...btn("ghost"), height: 32, padding: "0 12px", fontSize: 11, cursor: "pointer" }}>
             Import File
