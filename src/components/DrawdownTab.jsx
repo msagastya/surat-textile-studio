@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { T, btn, card, h2s, h2c, sel, lbl } from "../styles/theme.js";
 import { genThreading, genTieup, genTreadling, computeDrawdown } from "../utils/weaveUtils.js";
+import { useBreakpoint } from "../hooks/useBreakpoint.js";
 
 const CELL = 16;
 
@@ -15,7 +16,7 @@ function DraftGrid({ rows, cols, matrix, onToggle, rowLabel, colLabel, warpColor
   const cellSz = CELL;
 
   return (
-    <div style={{ overflowAuto: "auto" }}>
+    <div style={{ overflow: "auto" }}>
       {colLabel && (
         <div style={{ display: "flex", paddingLeft: rowLabel ? 44 : 0, marginBottom: 2 }}>
           {Array.from({ length: cols }, (_, c) => (
@@ -81,6 +82,7 @@ export default function DrawdownTab({
   warpYarnIdx, weftYarnIdx,
   palette,
 }) {
+  const { isMobile } = useBreakpoint();
   const [threadingPat, setThreadingPat] = useState("straight");
   const [tieupPat, setTieupPat] = useState("straight");
   const [treadlingPat, setTreadlingPat] = useState("straight");
@@ -219,7 +221,7 @@ export default function DrawdownTab({
         </div>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "260px 1fr", gap: 20, marginBottom: 20 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "260px 1fr", gap: 20, marginBottom: 20 }}>
         {/* Controls */}
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <div style={card}>

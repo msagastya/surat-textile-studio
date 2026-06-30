@@ -49,6 +49,21 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body, #root { height: 100%; }
 
+/* ── Global overflow guard — nothing escapes the viewport ── */
+html { overflow-x: hidden; }
+body { overflow-x: hidden; }
+
+/* Flex children default min-width is 'auto' (= content width), which causes overflow.
+   Setting min-width:0 lets them shrink below their content size. */
+.page-content { overflow-x: hidden; }
+.page-content > *, .grid-2col > *, .grid-sidebar > *, .grid-3col > *, .grid-4col > * { min-width: 0; }
+
+/* Media, canvas never exceed container */
+img, canvas, video, svg { max-width: 100%; height: auto; }
+
+/* Modals always fit viewport */
+[data-modal] { width: min(320px, calc(100vw - 32px)) !important; }
+
 body {
   background: var(--bg);
   color: var(--text);

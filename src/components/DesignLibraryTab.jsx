@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { T, btn, card, h2s, lbl, inp, sel } from "../styles/theme.js";
 import { cloudDb } from "../utils/cloudDb.js";
+import { useBreakpoint } from "../hooks/useBreakpoint.js";
 
 // ── localStorage fallback ─────────────────────────────────────────────────────
 const STORAGE_KEY = "surat_design_library_v1";
@@ -58,6 +59,7 @@ export default function DesignLibraryTab({
   const [confirm, setConfirm]     = useState(null);
   const [cloudStatus, setCloudStatus] = useState(cloudDb.isConfigured() ? "local" : "off");
   const [cloudMsg, setCloudMsg]   = useState("");
+  const { isMobile } = useBreakpoint();
 
   const useCloud = cloudDb.isConfigured();
 
@@ -260,9 +262,9 @@ export default function DesignLibraryTab({
         </div>
       )}
 
-      <div style={{ display: "flex", gap: 16 }}>
+      <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", gap: 16 }}>
         {/* Sidebar */}
-        <div style={{ width: 220, flexShrink: 0, display: "flex", flexDirection: "column", gap: 12 }}>
+        <div style={{ width: isMobile ? "100%" : 220, flexShrink: 0, display: "flex", flexDirection: "column", gap: 12 }}>
           <div style={card}>
             <div style={h2s}>Save Settings</div>
             <label style={lbl}>Tags (comma separated)</label>
@@ -346,7 +348,7 @@ export default function DesignLibraryTab({
       {/* Delete confirm modal */}
       {confirm && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 999 }}>
-          <div style={{ ...card, width: 320, textAlign: "center", padding: 32 }}>
+          <div style={{ ...card, width: "min(320px, calc(100vw - 32px))", textAlign: "center", padding: 32 }}>
             <div style={{ fontSize: 32, marginBottom: 16 }}>🗑️</div>
             <div style={{ color: T.text, fontSize: 15, marginBottom: 8 }}>Delete this design?</div>
             <div style={{ color: T.muted, fontSize: 11, marginBottom: 24 }}>Removed from local + cloud.</div>

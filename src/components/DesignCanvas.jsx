@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState, useCallback, useMemo } from "react";
 import { T, btn, card, h2s, h2c, lbl, sel } from "../styles/theme.js";
 import { MOTIF_LIBRARY, getMotifGrid, scaleMotif, placeMotif } from "../data/motifLibrary.js";
+import { useBreakpoint } from "../hooks/useBreakpoint.js";
 
 // ── Geometry helpers ────────────────────────────────────────────────────────
 function linePoints(r0, c0, r1, c1) {
@@ -81,6 +82,8 @@ export default function DesignCanvas({
 }) {
   const cvRef = useRef(null);
   const overlayRef = useRef(null);
+
+  const { isMobile } = useBreakpoint();
 
   // tool state
   const [tool, setTool] = useState("pencil");
@@ -418,9 +421,9 @@ export default function DesignCanvas({
         </div>
       </div>
 
-      <div style={{ display: "flex", gap: 16 }}>
+      <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", gap: 16 }}>
         {/* Left toolbar */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 10, width: 220, flexShrink: 0 }}>
+        <div style={{ display: "flex", flexDirection: isMobile ? "row" : "column", flexWrap: isMobile ? "wrap" : "nowrap", gap: 10, width: isMobile ? "100%" : 220, flexShrink: 0 }}>
 
           {/* Tools */}
           <div style={card}>
@@ -634,7 +637,7 @@ export default function DesignCanvas({
         </div>
 
         {/* Right: quick actions */}
-        <div style={{ width: 180, flexShrink: 0, display: "flex", flexDirection: "column", gap: 10 }}>
+        <div style={{ width: isMobile ? "100%" : 180, flexShrink: 0, display: "flex", flexDirection: "column", gap: 10 }}>
           <div style={card}>
             <div style={h2s}>Quick Fill</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
