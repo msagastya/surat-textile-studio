@@ -1,0 +1,27 @@
+{
+  "projectId": "006b113b-a570-4d1e-ae38-dce49f6d20c8",
+  "pkg": "surat-textile-studio",
+  "shape": "package",
+  "srcDir": "src",
+  "cssEntry": "src/styles/global.css",
+  "buildCmd": "node .ds-sync/package-build.mjs --config .design-sync/config.json --node-modules node_modules --entry src/index.jsx --out ds-bundle",
+  "runtimeFontPrefixes": ["JetBrains Mono"],
+  "readmeHeader": ".design-sync/conventions.md",
+  "componentSrcMap": {
+    "Swatch": "src/components/Swatch.jsx",
+    "StatBox": "src/components/StatBox.jsx",
+    "Tab": "src/components/Tab.jsx",
+    "WeaveGrid": "src/components/WeaveGrid.jsx",
+    "Header": "src/components/Header.jsx",
+    "ImportTab": null,
+    "PaletteTab": null,
+    "RecolorTab": null,
+    "WeaveTab": null,
+    "RepeatTab": null,
+    "YarnTab": null,
+    "AnalysisTab": null,
+    "MarketTab": null,
+    "ExportTab": null,
+    "ApiKeyPanel": null
+  }
+}

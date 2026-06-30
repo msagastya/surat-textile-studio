@@ -1,0 +1,11 @@
+{
+  "namespace": "SuratTextileStudio",
+  "source": "surat-textile-studio@1.0.0",
+  "shape": "package",
+  "provider": null,
+  "componentCount": 5,
+  "skippedStoryIds": [],
+  "runtimeFontPrefixes": [
+    "JetBrains Mono"
+  ]
+}

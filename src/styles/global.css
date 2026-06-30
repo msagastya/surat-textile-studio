@@ -1,0 +1,101 @@
+:root {
+  --bg:        #07050a;
+  --surf:      #0e0b10;
+  --panel:     #141018;
+  --raise:     #1c1822;
+  --border:    #2a2234;
+
+  --gold:      #e4a832;
+  --gold-dim:  #8a6218;
+  --crimson:   #e03e5c;
+  --indigo:    #6b7ff5;
+  --teal:      #1fc8c0;
+  --emerald:   #34c97a;
+  --violet:    #bf6ff5;
+
+  --text:      #ede4d5;
+  --text-dim:  #a296b0;
+  --muted:     #6e5e82;
+  --red:       #c0394a;
+  --green:     #155e38;
+
+  --font-mono:  "JetBrains Mono", "SF Mono", Consolas, monospace;
+  --font-serif: Georgia, "Times New Roman", serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body, #root { height: 100%; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Multi-color ambient glow at top — jewel tones */
+  background-image:
+    radial-gradient(ellipse 60% 25% at 20% 0%, rgba(191,111,245,0.07) 0%, transparent 100%),
+    radial-gradient(ellipse 60% 25% at 80% 0%, rgba(107,127,245,0.07) 0%, transparent 100%),
+    radial-gradient(ellipse 40% 20% at 50% 0%, rgba(228,168,50,0.06) 0%, transparent 100%);
+  background-attachment: fixed;
+}
+
+::selection { background: #5a2480; color: #ede4d5; }
+
+/* ── Scrollbars ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #3d3252; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--violet); }
+
+/* ── Buttons ── */
+button { font-family: var(--font-mono); cursor: pointer; }
+button:not(:disabled):hover  { filter: brightness(1.12); }
+button:not(:disabled):active { transform: scale(0.97); }
+
+/* ── Inputs ── */
+input, select, textarea {
+  font-family: var(--font-mono);
+  color: var(--text);
+}
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--violet) !important;
+  box-shadow: 0 0 0 3px rgba(191,111,245,0.12) !important;
+}
+
+input[type="range"] { accent-color: var(--teal); }
+input[type="color"]  { background: none; border: none; cursor: pointer; padding: 0; }
+input[type="checkbox"] { accent-color: var(--teal); }
+
+table { border-collapse: collapse; }
+a     { color: var(--teal); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* Row hover for data tables */
+tbody tr { transition: background 0.12s; }
+tbody tr:hover td { background: rgba(191,111,245,0.04); }
+
+/* Focus ring */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--violet);
+  outline-offset: 2px;
+}
+
+/* ── Gradient text utility ── */
+.gradient-text {
+  background: linear-gradient(90deg, var(--gold), var(--crimson), var(--indigo));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}

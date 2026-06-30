@@ -1,0 +1,12 @@
+[
+  {
+    "sheet": 1,
+    "components": [
+      "Header",
+      "StatBox",
+      "Swatch",
+      "Tab",
+      "WeaveGrid"
+    ]
+  }
+]

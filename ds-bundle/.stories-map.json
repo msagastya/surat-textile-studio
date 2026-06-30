@@ -1,0 +1,52 @@
+{
+  "global": "SuratTextileStudio",
+  "pkg": "surat-textile-studio",
+  "pkgDir": "/Users/msagastya/Desktop/surat-textile-studio",
+  "extraEntries": [],
+  "exported": [],
+  "storybookStatic": null,
+  "keyRecipe": 7,
+  "cfgSliceGlobal": "a139d95ad8ab0a8ba08b44a258c54602e36090304087f48fe923c61aa5a8ae08",
+  "components": [
+    {
+      "name": "Header",
+      "group": "general",
+      "srcSha": null,
+      "sourceKey": "e1320710a3eb741a",
+      "cfgSlice": "5ff899b099eb6923833804cda955efdd69101524bec86f67dac5537cd81802e8",
+      "stories": []
+    },
+    {
+      "name": "StatBox",
+      "group": "general",
+      "srcSha": null,
+      "sourceKey": "2f5b00429d279903",
+      "cfgSlice": "5ff899b099eb6923833804cda955efdd69101524bec86f67dac5537cd81802e8",
+      "stories": []
+    },
+    {
+      "name": "Swatch",
+      "group": "general",
+      "srcSha": null,
+      "sourceKey": "cd568345c46ca3ae",
+      "cfgSlice": "5ff899b099eb6923833804cda955efdd69101524bec86f67dac5537cd81802e8",
+      "stories": []
+    },
+    {
+      "name": "Tab",
+      "group": "general",
+      "srcSha": null,
+      "sourceKey": "7ae3b50e4e5e1e6c",
+      "cfgSlice": "5ff899b099eb6923833804cda955efdd69101524bec86f67dac5537cd81802e8",
+      "stories": []
+    },
+    {
+      "name": "WeaveGrid",
+      "group": "general",
+      "srcSha": null,
+      "sourceKey": "5237edeb0ed8ee90",
+      "cfgSlice": "5ff899b099eb6923833804cda955efdd69101524bec86f67dac5537cd81802e8",
+      "stories": []
+    }
+  ]
+}

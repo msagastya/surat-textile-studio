@@ -1,0 +1,39 @@
+{
+  "shape": "package",
+  "styleSha": "7785cc021b479a514ad02a770cc6107111984efe19ad3d9fa2b6cad189ac42cf",
+  "renderHashes": {
+    "Header": "fcd4d743cb834727",
+    "StatBox": "2a20426254899482",
+    "Swatch": "2bcf3727dfe6b431",
+    "Tab": "d31a7bf74dc7cc80",
+    "WeaveGrid": "1edda5842778770f"
+  },
+  "sourceKeys": {
+    "Header": "e1320710a3eb741a",
+    "StatBox": "2f5b00429d279903",
+    "Swatch": "cd568345c46ca3ae",
+    "Tab": "7ae3b50e4e5e1e6c",
+    "WeaveGrid": "5237edeb0ed8ee90"
+  },
+  "keyRecipe": 7,
+  "scriptsSha": "db90aa22b3ed1d3a",
+  "sourceHashes": {
+    "components/general/Header/Header.jsx": "2dde18d49a01",
+    "components/general/Header/Header.d.ts": "cc630e4b2262",
+    "components/general/Header/Header.prompt.md": "398aa9babc17",
+    "components/general/StatBox/StatBox.jsx": "feae3a37f711",
+    "components/general/StatBox/StatBox.d.ts": "99cd624ac8a7",
+    "components/general/StatBox/StatBox.prompt.md": "7245255748dd",
+    "components/general/Swatch/Swatch.jsx": "1b3006e965b2",
+    "components/general/Swatch/Swatch.d.ts": "09d84f191188",
+    "components/general/Swatch/Swatch.prompt.md": "1ef6914b442c",
+    "components/general/Tab/Tab.jsx": "0299d05577fc",
+    "components/general/Tab/Tab.d.ts": "ae8195777188",
+    "components/general/Tab/Tab.prompt.md": "a3dce6293b6a",
+    "components/general/WeaveGrid/WeaveGrid.jsx": "bc87d2372c36",
+    "components/general/WeaveGrid/WeaveGrid.d.ts": "8355918c2687",
+    "components/general/WeaveGrid/WeaveGrid.prompt.md": "95344a049338"
+  },
+  "auxSha": "f60eab8cd84e29cb",
+  "bundleSha12": "88effc5fd716"
+}
