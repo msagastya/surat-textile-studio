@@ -1,8 +1,10 @@
 import { T, btn, inp, lbl, card, h2s } from "../styles/theme.js";
 import { WEAVE_PRESETS } from "../data/weavePresets.js";
 import WeaveGrid from "./WeaveGrid.jsx";
+import { useBreakpoint } from "../hooks/useBreakpoint.js";
 
 export default function WeaveTab({ weaveName, setWeaveName, weaveMatrix, setWeaveMatrix, fabricType, fab }) {
+  const { isMobile } = useBreakpoint();
   const handleToggle = (ri, ci) => {
     setWeaveMatrix(weaveMatrix.map((row, r) =>
       r === ri ? row.map((v, c) => (c === ci ? (v ? 0 : 1) : v)) : row
@@ -22,7 +24,7 @@ export default function WeaveTab({ weaveName, setWeaveName, weaveMatrix, setWeav
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "200px 1fr", gap: 24 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "200px 1fr", gap: 24 }}>
         {/* Sidebar */}
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <div style={card}>

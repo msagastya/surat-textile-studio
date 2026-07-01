@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { T, btn, card, h2s, inp, lbl } from "../styles/theme.js";
+import { useBreakpoint } from "../hooks/useBreakpoint.js";
 
 const LAYER_DEFS = [
   { id: "ground",  name: "Ground (Tana)",   desc: "Base fabric structure — the foundation weave",          color: "#3a6b46" },
@@ -11,6 +12,7 @@ const LAYER_DEFS = [
 const WEAVE_OPTIONS = ["plain", "twill", "satin", "jacquard", "dobby", "velvet", "brocade", "lampas"];
 
 function LayerCard({ layer, config, onUpdate, active, onToggleActive }) {
+  const { isMobile } = useBreakpoint();
   const bg = active ? "rgba(" + hexToRgbStr(layer.color) + ",0.08)" : T.panel;
   const bc = active ? layer.color : T.border;
 
@@ -52,7 +54,7 @@ function LayerCard({ layer, config, onUpdate, active, onToggleActive }) {
       </div>
 
       {active && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12 }}>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(3,1fr)", gap: 12 }}>
           <div>
             <label style={lbl}>Weave Structure</label>
             <select value={config.weave} onChange={(e) => onUpdate({ weave: e.target.value })}
@@ -105,6 +107,7 @@ function hexToRgbStr(hex) {
 const DEFAULT_CONFIG = { weave: "jacquard", epi: 120, width: 44, zari: "Tested Zari", notes: "", colorSlot: "" };
 
 export default function LayerTab({ palette, fabricType }) {
+  const { isMobile } = useBreakpoint();
   const [layers, setLayers] = useState({
     ground: { active: true, ...DEFAULT_CONFIG, weave: "plain", epi: 72, zari: "None" },
     body:   { active: true, ...DEFAULT_CONFIG },
@@ -123,7 +126,7 @@ export default function LayerTab({ palette, fabricType }) {
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 24 }}>
+      <div className="tab-header" style={{ marginBottom: 24 }}>
         <div>
           <div style={h2s}>Layer Management</div>
           <div style={{ color: T.textDim, fontSize: 22, fontWeight: 700, fontFamily: "var(--font-serif)", marginTop: -4 }}>
@@ -138,7 +141,7 @@ export default function LayerTab({ palette, fabricType }) {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 280px", gap: 24 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 280px", gap: 24 }}>
         {/* Layer cards */}
         <div>
           {LAYER_DEFS.map((layer) => (

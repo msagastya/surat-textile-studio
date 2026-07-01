@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { T, inp, lbl, card, h2s, btn } from "../styles/theme.js";
 import { applyRepeatMode } from "../utils/weaveUtils.js";
+import { useBreakpoint } from "../hooks/useBreakpoint.js";
 
 const MODES = [
   ["straight",  "Straight",   "Standard tile repeat"],
@@ -18,6 +19,7 @@ export default function RepeatTab({
   palette, weaveMatrix,
 }) {
   const modeCanvasRef = useRef(null);
+  const { isMobile } = useBreakpoint();
   const cmW = (repeatW / 96 * 2.54).toFixed(1);
   const cmH = (repeatH / 96 * 2.54).toFixed(1);
 
@@ -129,7 +131,7 @@ export default function RepeatTab({
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "280px 1fr", gap: 24 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "280px 1fr", gap: 24 }}>
         {/* Controls */}
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <div style={card}>

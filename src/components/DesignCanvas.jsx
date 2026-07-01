@@ -363,6 +363,28 @@ export default function DesignCanvas({
 
   const onMouseLeave = () => setHoverCell(null);
 
+  // ── Touch events (mobile drawing) ─────────────────────────────────────────
+  const onTouchStart = (e) => {
+    e.preventDefault();
+    const t = e.touches[0];
+    if (!t) return;
+    onMouseDown({ clientX: t.clientX, clientY: t.clientY, button: 0, preventDefault: () => {} });
+  };
+
+  const onTouchMove = (e) => {
+    e.preventDefault();
+    const t = e.touches[0];
+    if (!t) return;
+    onMouseMove({ clientX: t.clientX, clientY: t.clientY });
+  };
+
+  const onTouchEnd = (e) => {
+    e.preventDefault();
+    const t = e.changedTouches[0];
+    if (!t) return;
+    onMouseUp({ clientX: t.clientX, clientY: t.clientY });
+  };
+
   // ── Motif helpers ──────────────────────────────────────────────────────────
   const previewMotif = () => {
     const motif2d = getMotifGrid(selMotif);
@@ -607,19 +629,23 @@ export default function DesignCanvas({
               <div style={{ color: T.muted, fontSize: 12 }}>Extract colors from the Import tab first, then come back to paint.</div>
             </div>
           ) : (
-            <div style={{ background: "#0a0806", borderRadius: 12, padding: 16, display: "inline-block", border: `1px solid ${T.border}` }}>
+            <div style={{ background: "#0a0806", borderRadius: 12, padding: 16, display: "block", border: `1px solid ${T.border}` }}>
               <canvas
                 ref={cvRef}
                 onMouseDown={onMouseDown}
                 onMouseMove={onMouseMove}
                 onMouseUp={onMouseUp}
                 onMouseLeave={onMouseLeave}
+                onTouchStart={onTouchStart}
+                onTouchMove={onTouchMove}
+                onTouchEnd={onTouchEnd}
                 onContextMenu={(e) => e.preventDefault()}
                 style={{
                   display: "block",
                   cursor: placingMotif ? "copy" : cursor,
                   imageRendering: "pixelated",
                   maxWidth: "100%",
+                  touchAction: "none",
                 }}
               />
               {hoverCell && (

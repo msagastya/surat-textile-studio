@@ -1,7 +1,9 @@
 import { T, card, h2s } from "../styles/theme.js";
 import { SURAT_MARKETS, SURAT_FABRICS } from "../data/suratFabrics.js";
+import { useBreakpoint } from "../hooks/useBreakpoint.js";
 
 export default function MarketTab({ targetMarket, setTargetMarket }) {
+  const { isMobile } = useBreakpoint();
   return (
     <div>
       <div style={{ marginBottom: 24 }}>
@@ -47,7 +49,7 @@ export default function MarketTab({ targetMarket, setTargetMarket }) {
       <div style={{ marginBottom: 16 }}>
         <div style={h2s}>Fabric Specifications</div>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 14 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(3,1fr)", gap: 14 }}>
         {Object.entries(SURAT_FABRICS).map(([name, info]) => (
           <div key={name} style={card}>
             <div style={{ color: T.gold, fontWeight: 700, fontSize: 13, marginBottom: 12, paddingBottom: 10, borderBottom: `1px solid ${T.border}` }}>

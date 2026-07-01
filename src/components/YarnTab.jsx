@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { T, inp, card, h2s, lbl } from "../styles/theme.js";
+import { useBreakpoint } from "../hooks/useBreakpoint.js";
 import StatBox from "./StatBox.jsx";
 // Accent color constants inline (avoiding circular dep)
 const EMERALD = "#34c97a";
@@ -24,6 +25,7 @@ const YARN_LIBRARY = [
 ];
 
 function WarpBeamCalc({ epi, ppi }) {
+  const { isMobile } = useBreakpoint();
   const [fabricWidthCm, setFabricWidthCm] = useState(110);
   const [fabricLengthM, setFabricLengthM] = useState(100);
   const [weavingLossPercent, setWeavingLossPercent] = useState(12);
@@ -43,7 +45,7 @@ function WarpBeamCalc({ epi, ppi }) {
   return (
     <div style={card}>
       <div style={h2s}>Warp Beam Calculator</div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12, marginBottom: 20 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(3,1fr)", gap: 12, marginBottom: 20 }}>
         <div>
           <label style={lbl}>Fabric Width (cm)</label>
           <input type="number" value={fabricWidthCm} onChange={(e) => setFabricWidthCm(+e.target.value)} style={inp} />
@@ -77,7 +79,7 @@ function WarpBeamCalc({ epi, ppi }) {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4,1fr)", gap: 14 }}>
         {[
           ["Total Ends", totalEnds, `${epi} EPI × ${widthIn.toFixed(1)}"`, T.gold],
           ["Total Warp Length", `${totalLengthM.toFixed(1)} m`, `${fabricLengthM}m + ${weavingLossPercent}% loss + loom waste`, T.text],
@@ -104,11 +106,12 @@ function WarpBeamCalc({ epi, ppi }) {
 }
 
 export default function YarnTab({ costEstimate, palette, fabricType, zariType, gsm, epi, ppi, denier, fab, designNotes, setDesignNotes }) {
+  const { isMobile } = useBreakpoint();
   const [activeSection, setActiveSection] = useState("consumption");
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 24 }}>
+      <div className="tab-header" style={{ marginBottom: 24 }}>
         <div>
           <div style={h2s}>Yarn & Cost</div>
           <div style={{ color: T.textDim, fontSize: 22, fontWeight: 700, fontFamily: "var(--font-serif)", marginTop: -4 }}>
@@ -140,7 +143,7 @@ export default function YarnTab({ costEstimate, palette, fabricType, zariType, g
             </div>
           ) : (
             <>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 16, marginBottom: 24 }}>
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4,1fr)", gap: 16, marginBottom: 24 }}>
                 <StatBox label="Est. Cost / Meter" value={`₹${costEstimate.perMeter}`} sub={`${fabricType} + ${zariType}`} accent={EMERALD} />
                 <StatBox label="Fabric GSM"         value={gsm}                         sub="grams per sq meter"             accent={TEAL} />
                 <StatBox label="EPI × PPI"          value={`${epi}×${ppi}`}             sub="ends & picks per inch"          accent={GOLD} />

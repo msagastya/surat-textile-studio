@@ -1,4 +1,5 @@
 import { T, btn, card, h2s } from "../styles/theme.js";
+import { useBreakpoint } from "../hooks/useBreakpoint.js";
 
 const FORMATS = [
   ["jc5",  "JC5",  "NedGraphics Jacquard 5 — loom ready",                "🔵"],
@@ -13,6 +14,7 @@ export default function ExportTab({
   exportFmt, setExportFmt, doExport, palette, designName, fabricType, zariType,
   targetMarket, epi, ppi, gsm, denier, weaveName, repeatW, repeatH, aiAnalysis, costEstimate,
 }) {
+  const { isMobile } = useBreakpoint();
   return (
     <div>
       <div style={{ marginBottom: 24 }}>
@@ -22,7 +24,7 @@ export default function ExportTab({
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: 24 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "300px 1fr", gap: 24 }}>
         {/* Format picker */}
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <div style={card}>
