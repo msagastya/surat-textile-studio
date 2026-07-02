@@ -2,12 +2,12 @@ import { T, btn, card, h2s } from "../styles/theme.js";
 import { useBreakpoint } from "../hooks/useBreakpoint.js";
 
 const FORMATS = [
-  ["jc5",  "JC5",  "NedGraphics Jacquard 5 — loom ready",                "🔵"],
-  ["ep",   "EP",   "Electronic Pattern — Stäubli / Bonas loom transfer",  "🟣"],
-  ["wif",  "WIF",  "Weaving Information File — PixeLoom / Fiberworks / AdaGio compatible", "🟠"],
-  ["json", "JSON", "Full design data + AI analysis + all specs",          "🟡"],
-  ["csv",  "CSV",  "Palette + yarn table for Excel / ERP",                "🟢"],
-  ["all",  "ALL",  "Download all 5 files at once",                        "⭐"],
+  ["png",  "Design PNG",  "Indexed color cartoon (1px per hook) — import into ArahWeave or Textronic, assign weave structures, then export to JC5/EP", "🖼️"],
+  ["bmp",  "Loom Card BMP", "1-bit Windows BMP from weave matrix — Stäubli JC5/JC6 reads this natively via 'Import Design'. Transfer via USB pen drive.", "⬛"],
+  ["wif",  "WIF v1.1",   "Weaving Information File — opens in ArahWeave, WeavePoint, ScotWeave, Fiberworks, iWeaveIt, DigiBunai", "🔷"],
+  ["json", "JSON",        "Full design data + AI analysis + all specs",          "🟡"],
+  ["csv",  "CSV",         "Palette + yarn table for Excel / ERP",                "🟢"],
+  ["all",  "ALL",         "Download all 5 files at once",                        "⭐"],
 ];
 
 export default function ExportTab({
@@ -105,8 +105,9 @@ export default function ExportTab({
           <div style={card}>
             <div style={h2s}>Format Guide</div>
             {[
-              ["JC5",  "NedGraphics-compatible Jacquard 5 with full color table, weave structure, and zari data."],
-              ["EP",   "Electronic Pattern (PostScript) for Stäubli, Bonas, Grosse, and compatible loom systems."],
+              ["PNG",  "Design cartoon — one pixel per hook/pick, colors match yarn palette. Load into ArahWeave (Jacquard menu) or Textronic to assign weave structures per color, then export to JC5 or EP from there."],
+              ["BMP",  "1-bit loom card from weave matrix. White=hook raised, black=hook down. Stäubli JC5/JC6 reads this natively under 'Import → BMP'. Transfer via USB pen drive to controller."],
+              ["WIF",  "Weaving Information File v1.1 — open standard read by ArahWeave, WeavePoint, ScotWeave, Fiberworks, iWeaveIt, SwiftWeave, DigiBunai, and handweaving.net. Uses Liftplan section for Jacquard; Threading+Tieup+Treadling for shaft looms."],
               ["JSON", "Complete structured export with AI analysis, market data, repeat, and all technical specs."],
               ["CSV",  "Yarn and color table for Excel, ERP systems, or production planning."],
             ].map(([k, v]) => (
@@ -115,6 +116,10 @@ export default function ExportTab({
                 <span style={{ color: T.textDim, lineHeight: 1.7 }}>{v}</span>
               </div>
             ))}
+            <div style={{ marginTop: 14, padding: "10px 12px", background: T.raise, borderRadius: 8, border: `1px solid ${T.borderBr}`, fontSize: 10, color: T.textDim, lineHeight: 1.8 }}>
+              <span style={{ color: T.gold, fontWeight: 700 }}>Surat workflow: </span>
+              Export PNG → open in ArahWeave/Textronic → assign weave per color → software exports JC5/EP to your Stäubli controller.
+            </div>
           </div>
         </div>
       </div>

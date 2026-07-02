@@ -4,7 +4,7 @@ import { T } from "./styles/theme.js";
 import { SURAT_FABRICS, SURAT_MARKETS, ZARI_TYPES, ZARI_COST_BUMP } from "./data/suratFabrics.js";
 import { WEAVE_PRESETS } from "./data/weavePresets.js";
 import { extractPalette, detectRepeat, hexToRgb, analyzeHarmony } from "./utils/colorUtils.js";
-import { buildJC5, buildEP, buildJSON, buildCSV, buildWIF, downloadFile } from "./utils/exportFormats.js";
+import { buildDesignPNG, buildLoomBMP, buildJSON, buildCSV, buildWIF, downloadFile, downloadBinary } from "./utils/exportFormats.js";
 import { imageToBase64, runFabricAnalysis, runAIRecolor as aiRecolorCall } from "./utils/aiService.js";
 import { scanTextileImage } from "./utils/geminiApi.js";
 import { genThreading, genTieup, genTreadling } from "./utils/weaveUtils.js";
@@ -75,7 +75,7 @@ export default function App() {
   const [aiLoading, setAiLoading] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [editIdx, setEditIdx] = useState(null);
-  const [exportFmt, setExportFmt] = useState("jc5");
+  const [exportFmt, setExportFmt] = useState("png");
   const [aiColorizePrompt, setAiColorizePrompt] = useState("");
   const [aiColorizeBusy, setAiColorizeBusy] = useState(false);
   const [costEstimate, setCostEstimate] = useState(null);
@@ -238,14 +238,20 @@ export default function App() {
       grid, gridW, gridH,
     };
     if (exportFmt === "all") {
-      downloadFile(buildJC5(state), `${designName}.jc5`, "text/plain");
-      downloadFile(buildEP(state), `${designName}.ep`, "text/plain");
+      const png = buildDesignPNG(state);
+      const bmp = buildLoomBMP(state);
+      if (png) downloadBinary(png, `${designName}_cartoon.png`, "image/png");
+      if (bmp) downloadBinary(bmp, `${designName}_loomcard.bmp`, "image/bmp");
       downloadFile(buildJSON(state), `${designName}.json`, "application/json");
       downloadFile(buildCSV(state), `${designName}_palette.csv`, "text/csv");
       downloadFile(buildWIF(state), `${designName}.wif`, "text/plain");
-    } else if (exportFmt === "jc5") downloadFile(buildJC5(state), `${designName}.jc5`, "text/plain");
-    else if (exportFmt === "ep")  downloadFile(buildEP(state), `${designName}.ep`, "text/plain");
-    else if (exportFmt === "json") downloadFile(buildJSON(state), `${designName}.json`, "application/json");
+    } else if (exportFmt === "png") {
+      const png = buildDesignPNG(state);
+      if (png) downloadBinary(png, `${designName}_cartoon.png`, "image/png");
+    } else if (exportFmt === "bmp") {
+      const bmp = buildLoomBMP(state);
+      if (bmp) downloadBinary(bmp, `${designName}_loomcard.bmp`, "image/bmp");
+    } else if (exportFmt === "json") downloadFile(buildJSON(state), `${designName}.json`, "application/json");
     else if (exportFmt === "wif") downloadFile(buildWIF(state), `${designName}.wif`, "text/plain");
     else downloadFile(buildCSV(state), `${designName}_palette.csv`, "text/csv");
   }, [designName, fabricType, zariType, targetMarket, imageDimensions, palette, weaveMatrix, weaveName, epi, ppi, gsm, denier, repeatW, repeatH, aiAnalysis, costEstimate, marketSuggestion, exportFmt, threading, tieup, treadling, numShafts, numTreadles, grid, gridW, gridH]);
