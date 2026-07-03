@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { T, inp, card, h2s, lbl } from "../styles/theme.js";
 import StatBox from "./StatBox.jsx";
+import { NED_LOOMS } from "../data/nedLooms.js";
+import { validateLoom } from "../utils/loomValidator.js";
+import { NED_YARNS, NED_MATERIALS } from "../data/nedYarns.js";
 // Accent color constants inline (avoiding circular dep)
 const EMERALD = "#34c97a";
 const GOLD    = "#e4a832";
@@ -28,9 +31,11 @@ function WarpBeamCalc({ epi, ppi }) {
   const [fabricLengthM, setFabricLengthM] = useState(100);
   const [weavingLossPercent, setWeavingLossPercent] = useState(12);
   const [selectedYarn, setSelectedYarn] = useState(YARN_LIBRARY[0]);
+  const [loom, setLoom] = useState(NED_LOOMS[0]);
 
   const widthIn = fabricWidthCm / 2.54;
   const totalEnds = Math.round(epi * widthIn);
+  const loomCheck = validateLoom(loom, epi, fabricWidthCm);
   const loomWasteM = 2.5;
   const totalLengthM = fabricLengthM * (1 + weavingLossPercent / 100) + loomWasteM;
   const yarnPerEndM = totalLengthM;
@@ -98,6 +103,30 @@ function WarpBeamCalc({ epi, ppi }) {
 
       <div style={{ color: T.muted, fontSize: 10, marginTop: 12, lineHeight: 1.8 }}>
         Formula: Total ends = EPI × width(in) · Total length = order × (1 + loss%) + 2.5m loom waste · Weight = (total yarn m) / (Nm × 1000)
+      </div>
+
+      {/* Loom hook-capacity check (NedGraphics machine-conversion library) */}
+      <div style={{ marginTop: 20, paddingTop: 20, borderTop: `1px solid ${T.border}` }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, flexWrap: "wrap", gap: 10 }}>
+          <div style={h2s}>Loom Capacity Check</div>
+          <select value={loom.id} onChange={(e) => setLoom(NED_LOOMS.find((l) => l.id === e.target.value) || NED_LOOMS[0])}
+            style={{ background: T.surf, border: `1px solid ${T.border}`, borderRadius: 8, color: T.text, fontFamily: "var(--font-mono)", fontSize: 11, padding: "9px 12px", outline: "none" }}>
+            {NED_LOOMS.map((l) => <option key={l.id} value={l.id}>{l.name} — {l.hooks.toLocaleString()} hooks</option>)}
+          </select>
+        </div>
+        <div style={{
+          borderRadius: 10, padding: "12px 16px",
+          border: `1px solid ${loomCheck.fits ? "rgba(52,201,122,0.4)" : "rgba(230,90,90,0.5)"}`,
+          background: loomCheck.fits ? "rgba(52,201,122,0.08)" : "rgba(230,90,90,0.08)",
+        }}>
+          <div style={{ color: loomCheck.fits ? "#34c97a" : "#e65a5a", fontSize: 12, fontWeight: 700 }}>
+            {loomCheck.fits ? "✓ Fits" : "✗ Over capacity"}
+          </div>
+          <div style={{ color: T.textDim, fontSize: 11, marginTop: 5, lineHeight: 1.6 }}>{loomCheck.message}</div>
+          <div style={{ width: "100%", height: 5, background: T.surf, borderRadius: 3, marginTop: 8 }}>
+            <div style={{ width: `${loomCheck.usedPct}%`, height: "100%", borderRadius: 3, background: loomCheck.fits ? "#34c97a" : "#e65a5a" }} />
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -231,6 +260,70 @@ export default function YarnTab({ costEstimate, palette, fabricType, zariType, g
           </div>
           <div style={{ color: T.muted, fontSize: 10, marginTop: 12, lineHeight: 1.8 }}>
             Prices are approximate Surat market rates (2024). Actual prices vary by supplier, quality grade, and order quantity.
+          </div>
+
+          {/* Real NedGraphics yarn records (Jacquard 16 yarn database) */}
+          <div style={{ ...card, marginTop: 16 }}>
+            <div style={h2s}>NedGraphics Yarn Database</div>
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%" }}>
+                <thead>
+                  <tr style={{ borderBottom: `1px solid ${T.border}` }}>
+                    {["Yarn", "Material", "Plies", "Twist (t/10cm)", "Sense", "Count", "Space Dye"].map((h) => (
+                      <th key={h} style={{ color: T.textDim, textAlign: "left", padding: "10px 12px", fontWeight: 400, fontSize: 10, letterSpacing: "1.5px", textTransform: "uppercase" }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {NED_YARNS.map((y) => (
+                    <tr key={y.name} style={{ borderBottom: `1px solid ${T.border}` }}>
+                      <td style={{ padding: "10px 12px", color: T.text, fontSize: 12, fontWeight: 600 }}>{y.name}</td>
+                      <td style={{ padding: "10px 12px", color: T.textDim, fontSize: 11 }}>{y.material}</td>
+                      <td style={{ padding: "10px 12px", color: T.textDim, fontSize: 11 }}>{y.plies}</td>
+                      <td style={{ padding: "10px 12px", color: T.gold, fontSize: 12 }}>{y.twist}</td>
+                      <td style={{ padding: "10px 12px", color: T.textDim, fontSize: 11 }}>{y.twistSense}-twist</td>
+                      <td style={{ padding: "10px 12px", color: T.textDim, fontSize: 11 }}>{y.count.toLocaleString()}</td>
+                      <td style={{ padding: "10px 12px", color: T.muted, fontSize: 11 }}>{y.spaceDye}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div style={{ color: T.muted, fontSize: 10, marginTop: 12, lineHeight: 1.8 }}>
+              Fields (twist sense S/Z, plies, count, space-dye) match the NedGraphics Jacquard 16 yarn record schema.
+            </div>
+          </div>
+
+          {/* Material optical/physical constants (drives realistic simulation) */}
+          <div style={{ ...card, marginTop: 16 }}>
+            <div style={h2s}>Material Reflectance & Body</div>
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%" }}>
+                <thead>
+                  <tr style={{ borderBottom: `1px solid ${T.border}` }}>
+                    {["Material", "Sheen (spec.)", "Body (diffuse)", "Woven size", "Loose size", "Twisted", "Heat-set"].map((h) => (
+                      <th key={h} style={{ color: T.textDim, textAlign: "left", padding: "10px 12px", fontWeight: 400, fontSize: 10, letterSpacing: "1.5px", textTransform: "uppercase" }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {NED_MATERIALS.map((m) => (
+                    <tr key={m.name} style={{ borderBottom: `1px solid ${T.border}` }}>
+                      <td style={{ padding: "10px 12px", color: T.text, fontSize: 12, fontWeight: 600 }}>{m.name}</td>
+                      <td style={{ padding: "10px 12px", color: T.gold, fontSize: 12 }}>{m.specular}</td>
+                      <td style={{ padding: "10px 12px", color: T.textDim, fontSize: 12 }}>{m.diffuse}</td>
+                      <td style={{ padding: "10px 12px", color: T.textDim, fontSize: 11 }}>{m.sizeCompressed}</td>
+                      <td style={{ padding: "10px 12px", color: T.textDim, fontSize: 11 }}>{m.sizeUncompressed}</td>
+                      <td style={{ padding: "10px 12px", color: T.muted, fontSize: 11 }}>{m.twisted ? "yes" : "no"}</td>
+                      <td style={{ padding: "10px 12px", color: T.muted, fontSize: 11 }}>{m.heatSet ? "yes" : "no"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div style={{ color: T.muted, fontSize: 10, marginTop: 12, lineHeight: 1.8 }}>
+              From NedGraphics Materials.xml — specular sheen, diffuse body, and compression factors used by the fabric simulator.
+            </div>
           </div>
         </div>
       )}

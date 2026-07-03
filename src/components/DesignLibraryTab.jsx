@@ -2,6 +2,61 @@ import { useState, useEffect } from "react";
 import { T, btn, card, h2s, lbl, inp, sel } from "../styles/theme.js";
 import { cloudDb } from "../utils/cloudDb.js";
 import { useBreakpoint } from "../hooks/useBreakpoint.js";
+import { NED_MOTIFS, NED_MOTIF_FAMILIES } from "../data/nedMotifs.js";
+
+// Browsable reference of the 56 professional Texcelle sample motifs, decoded from
+// their .des (NIFF/DSGN) headers — family, grid size, palette count, and loom repeat.
+function MotifReference() {
+  const [open, setOpen] = useState(false);
+  const [family, setFamily] = useState("All");
+  const shown = NED_MOTIFS.filter((m) => family === "All" || m.family === family);
+  return (
+    <div style={{ ...card, marginBottom: 16 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
+        <div style={h2s}>NedGraphics Motif Reference ({NED_MOTIFS.length})</div>
+        <button onClick={() => setOpen((v) => !v)} style={btn("ghost")}>{open ? "Hide" : "Browse"}</button>
+      </div>
+      {open && (
+        <>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", margin: "12px 0" }}>
+            {["All", ...NED_MOTIF_FAMILIES].map((f) => (
+              <button key={f} onClick={() => setFamily(f)}
+                style={{ padding: "5px 12px", borderRadius: 7, cursor: "pointer", fontSize: 11, fontFamily: "var(--font-mono)",
+                  border: `1px solid ${family === f ? T.tealDim : T.border}`, background: family === f ? T.tealFaint : "transparent",
+                  color: family === f ? T.teal : T.textDim }}>{f}</button>
+            ))}
+          </div>
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%" }}>
+              <thead>
+                <tr style={{ borderBottom: `1px solid ${T.border}` }}>
+                  {["Motif", "Family", "Grid (cells)", "Colors", "Repeat", "Depth"].map((h) => (
+                    <th key={h} style={{ color: T.textDim, textAlign: "left", padding: "9px 12px", fontWeight: 400, fontSize: 10, letterSpacing: "1.5px", textTransform: "uppercase" }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {shown.map((m) => (
+                  <tr key={m.id} style={{ borderBottom: `1px solid ${T.border}` }}>
+                    <td style={{ padding: "9px 12px", color: T.text, fontSize: 12, fontWeight: 600 }}>{m.id}</td>
+                    <td style={{ padding: "9px 12px", color: T.textDim, fontSize: 11 }}>{m.family}</td>
+                    <td style={{ padding: "9px 12px", color: T.teal, fontSize: 12 }}>{m.w}×{m.h}</td>
+                    <td style={{ padding: "9px 12px", color: T.textDim, fontSize: 11 }}>{m.colors}</td>
+                    <td style={{ padding: "9px 12px", color: T.textDim, fontSize: 11 }}>{m.repeat ?? "–"}</td>
+                    <td style={{ padding: "9px 12px", color: T.muted, fontSize: 11 }}>{m.bpp}-bit</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div style={{ color: T.muted, fontSize: 10, marginTop: 12, lineHeight: 1.8 }}>
+            Decoded from the Texcelle 16 sample library (.des / NIFF-DSGN). Grid, palette count and repeat are read from each design's DHDR/DPAL chunks.
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
 
 // ── localStorage fallback ─────────────────────────────────────────────────────
 const STORAGE_KEY = "surat_design_library_v1";
@@ -235,6 +290,8 @@ export default function DesignLibraryTab({
           </button>
         </div>
       </div>
+
+      <MotifReference />
 
       {/* Cloud error banner */}
       {cloudMsg && (

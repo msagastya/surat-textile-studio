@@ -1,12 +1,11 @@
 import { T, btn, card, h2s } from "../styles/theme.js";
 
 const FORMATS = [
-  ["jc5",  "JC5",  "NedGraphics Jacquard 5 — loom ready",                "🔵"],
-  ["ep",   "EP",   "Electronic Pattern — Stäubli / Bonas loom transfer",  "🟣"],
+  ["jc5",  "JC5",  "NedGraphics / Stäubli jacquard card — zoned header + X/Y/E bit-planes", "🔵"],
   ["wif",  "WIF",  "Weaving Information File — PixeLoom / Fiberworks / AdaGio compatible", "🟠"],
   ["json", "JSON", "Full design data + AI analysis + all specs",          "🟡"],
   ["csv",  "CSV",  "Palette + yarn table for Excel / ERP",                "🟢"],
-  ["all",  "ALL",  "Download all 5 files at once",                        "⭐"],
+  ["all",  "ALL",  "Download all 4 files at once",                        "⭐"],
 ];
 
 export default function ExportTab({
@@ -103,8 +102,8 @@ export default function ExportTab({
           <div style={card}>
             <div style={h2s}>Format Guide</div>
             {[
-              ["JC5",  "NedGraphics-compatible Jacquard 5 with full color table, weave structure, and zari data."],
-              ["EP",   "Electronic Pattern (PostScript) for Stäubli, Bonas, Grosse, and compatible loom systems."],
+              ["JC5",  "NedGraphics/Stäubli jacquard card: zoned header (TYPE/DESIGN/FORMAT), X/Y/E geometry, color table, and an MSB-first bit-plane card body — one lift bit per warp end."],
+              ["WIF",  "Weaving Information File v1.1 — the open loom-interchange standard, opens in PixeLoom, Fiberworks, and most CAD systems."],
               ["JSON", "Complete structured export with AI analysis, market data, repeat, and all technical specs."],
               ["CSV",  "Yarn and color table for Excel, ERP systems, or production planning."],
             ].map(([k, v]) => (

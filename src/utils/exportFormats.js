@@ -1,69 +1,65 @@
-// Generates the four export formats used by the Surat textile market.
+// Generates the export formats used by the Surat textile market.
 
+/**
+ * JC5 — NedGraphics/Stäubli electronic-jacquard card export.
+ *
+ * Structure reverse-engineered from NGJC5DLL20.dll + NGCard.dll (Jacquard 16):
+ *   • a zoned text header (BEGIN_ZONE … END_ZONE) carrying the TYPE / DESIGN / FORMAT zones,
+ *     plus the CCard geometry — X size (ends/warp), Y size (picks/weft), E size (extension hooks);
+ *   • a bit-plane card body: one row per pick, MSB-first, one lift bit per warp end.
+ *
+ * This is a documented, human-readable rendering of that layout (not the binary .crd the loom
+ * controller ingests). It faithfully mirrors the real zone/geometry/bit-plane model so it can be
+ * converted to a controller card, rather than the invented INI the app previously emitted.
+ */
 export function buildJC5(s) {
+  const matrix = s.weaveMatrix?.length ? s.weaveMatrix : [[0]];
+  const ySize = matrix.length;                 // picks
+  const xSize = matrix[0]?.length || 0;        // ends
+  const eSize = s.palette?.length || 1;        // extension hooks ≈ color/selection count
+
+  // Pack each pick row into MSB-first hex bytes (1 = warp up / lifted).
+  const packRow = (row) => {
+    let out = "";
+    for (let i = 0; i < row.length; i += 8) {
+      let byte = 0;
+      for (let b = 0; b < 8; b++) {
+        if (row[i + b]) byte |= 1 << (7 - b);
+      }
+      out += byte.toString(16).padStart(2, "0").toUpperCase();
+    }
+    return out;
+  };
+
   return [
-    "[JC5_HEADER]",
-    `DESIGN_NAME=${s.designName}`,
-    `VERSION=5.0`,
-    `FABRIC=${s.fabricType}`,
-    `MARKET=${s.targetMarket || "Surat"}`,
-    `ZARI=${s.zariType || "No Zari"}`,
-    `WIDTH_EPI=${s.epi || 72}`,
-    `HEIGHT_PPI=${s.ppi || 64}`,
-    `GSM=${s.gsm || "120-250"}`,
-    `DENIER=${s.denier || "150D"}`,
-    `REPEAT_W=${s.repeatW || 80}`,
-    `REPEAT_H=${s.repeatH || 80}`,
-    `DATE=${new Date().toISOString()}`,
-    `COLORS=${s.palette.length}`,
-    "",
-    "[COLOR_TABLE]",
+    "BEGIN_ZONE",
+    "    TYPE_ZONE     DESIGN",
+    "    DESIGN_ZONE",
+    `        DESIGN_NAME   ${s.designName}`,
+    `        FABRIC        ${s.fabricType}`,
+    `        MARKET        ${s.targetMarket || "Surat"}`,
+    `        ZARI          ${s.zariType || "No Zari"}`,
+    `        DATE          ${new Date().toISOString()}`,
+    "    FORMAT_ZONE",
+    "        CONTROLLER    STAUBLI_JC5",
+    `        X_SIZE        ${xSize}`,   // warp ends
+    `        Y_SIZE        ${ySize}`,   // weft picks
+    `        E_SIZE        ${eSize}`,   // extension hooks
+    `        EPI           ${s.epi || 72}`,
+    `        PPI           ${s.ppi || 64}`,
+    `        REPEAT        ${s.repeatW || xSize} x ${s.repeatH || ySize}`,
+    "    COLOR_ZONE",
     ...s.palette.map(
       (c, i) =>
-        `C${String(i).padStart(3, "0")}=${c.rgb.join(",")},${
+        `        COLOR ${String(i).padStart(3, "0")}  RGB ${c.rgb.join(" ")}  ${
           c.yarnName || `YARN_${i + 1}`
-        },${c.weaveType || "plain"},${c.percentage?.toFixed(2) || "0"}%`
+        }  ${c.percentage?.toFixed(1) || "0"}%`
     ),
+    "END_ZONE",
     "",
-    "[WEAVE_STRUCTURE]",
-    ...s.weaveMatrix.map((row, i) => `ROW${i}=${row.join(",")}`),
-    "",
-    "[YARN_USAGE_KG_PER_100M]",
-    ...s.palette.map((c, i) => `YARN${i}=${((c.percentage || 0) * 0.0085).toFixed(4)}`),
-    "",
-    "[END_JC5]",
-  ].join("\n");
-}
-
-export function buildEP(s) {
-  return [
-    `% EP Electronic Pattern — Surat Textile Studio`,
-    `% Design: ${s.designName} | Fabric: ${s.fabricType} | Zari: ${s.zariType || "No Zari"}`,
-    `% EPI: ${s.epi} | PPI: ${s.ppi} | GSM: ${s.gsm} | Denier: ${s.denier}`,
-    `% Target Market: ${s.targetMarket || "Surat"} | Date: ${new Date().toISOString()}`,
-    "%%BeginSetup",
-    `/FabricType (${s.fabricType}) def`,
-    `/ColorCount ${s.palette.length} def`,
-    `/RepeatWidth ${s.repeatW || 80} def`,
-    `/RepeatHeight ${s.repeatH || 80} def`,
-    `/EPI ${s.epi} def`,
-    `/PPI ${s.ppi} def`,
-    `/Zari (${s.zariType || "None"}) def`,
-    "%%EndSetup",
-    "%%BeginColorTable",
-    ...s.palette.map((c, i) => {
-      const [r, g, b] = c.rgb;
-      return `/Color${i} { ${(r / 255).toFixed(3)} ${(g / 255).toFixed(3)} ${(
-        b / 255
-      ).toFixed(3)} setrgbcolor } def % ${c.yarnName || `Yarn ${i + 1}`} ${
-        c.percentage?.toFixed(1)
-      }%`;
-    }),
-    "%%EndColorTable",
-    "%%BeginWeaveData",
-    ...s.weaveMatrix.slice(0, 8).map((row, i) => `/WeaveRow${i} [${row.join(" ")}] def`),
-    "%%EndWeaveData",
-    "%%EOF",
+    "BEGIN_CARD",
+    ...matrix.map((row) => packRow(row)),
+    "END_CARD",
   ].join("\n");
 }
 

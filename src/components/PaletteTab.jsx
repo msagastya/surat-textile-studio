@@ -3,6 +3,7 @@ import { T, btn, inp, sel, lbl, card, h2s, h2c } from "../styles/theme.js";
 import { useBreakpoint } from "../hooks/useBreakpoint.js";
 import { hexToRgb } from "../utils/colorUtils.js";
 import { reduceColors } from "../utils/weaveUtils.js";
+import { nearestNedColor } from "../data/nedColors.js";
 import Swatch from "./Swatch.jsx";
 
 export default function PaletteTab({ palette, setPalette, editIdx, setEditIdx, image, processing, extractColors, setTab, harmonyData }) {
@@ -12,6 +13,16 @@ export default function PaletteTab({ palette, setPalette, editIdx, setEditIdx, i
   const handleReduce = () => {
     if (palette.length <= reduceTarget) return;
     setPalette(reduceColors(palette, reduceTarget));
+  };
+
+  // Snap every extracted color to its nearest shade in the NedGraphics color atlas,
+  // so the palette lines up with the mill's standard printer color books.
+  const handleSnapToAtlas = () => {
+    if (!palette.length) return;
+    setPalette(palette.map((c) => {
+      const near = nearestNedColor(c.rgb);
+      return { ...c, hex: near.hex, rgb: [...near.rgb] };
+    }));
   };
 
   return (
@@ -30,6 +41,9 @@ export default function PaletteTab({ palette, setPalette, editIdx, setEditIdx, i
           </button>
           <button onClick={() => setTab("colorways")} style={btn("dim")}>
             Colorways
+          </button>
+          <button onClick={handleSnapToAtlas} disabled={!palette.length} style={btn("dim", !palette.length)} title="Snap each color to the nearest NedGraphics printer-book shade">
+            Snap to NedGraphics
           </button>
           <button onClick={() => setTab("recolor")} style={btn("gold")}>
             AI Recolor →

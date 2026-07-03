@@ -2,8 +2,27 @@
 
 AI-powered textile design studio built for the Surat (Gujarat, India) Jacquard,
 Banarasi, and saree market. Import a fabric photo, extract the yarn color
-palette, draft a weave structure, estimate cost in ₹, and export production
-files in JC5, EP, JSON, or CSV format.
+palette, draft a weave structure, estimate cost in ₹, check the design against
+real loom hook capacities, and export production files in JC5, WIF, JSON, or CSV.
+
+Several reference datasets are recovered from the NedGraphics Jacquard 16 /
+Texcelle 16 professional suite and folded into `src/data/`:
+
+- **`nedColors.js`** — a 240-shade color atlas sampled from the NedGraphics
+  printer color books (UNIBOOK / STRCBOOK / PCR), used by the "Snap to
+  NedGraphics" palette action.
+- **`nedYarns.js`** — the real NedGraphics yarn record schema (twist S/Z, plies,
+  count, space-dye) and material reflectance/compression constants.
+- **`nedMotifs.js`** — the 56 Texcelle sample motifs, decoded from their `.des`
+  (NIFF/DSGN) headers.
+- **`nedLooms.js`** — electronic-jacquard loom hook capacities (Stäubli, Bonas,
+  Grosse, Dornier, Dobby) for the loom-capacity check.
+
+The **JC5** export mirrors the real NedGraphics/Stäubli card layout
+(`BEGIN_ZONE` header with TYPE/DESIGN/FORMAT zones, X/Y/E geometry, and an
+MSB-first bit-plane card body) reverse-engineered from `NGJC5DLL20.dll`. **WIF**
+is a genuine open loom-interchange standard. (The previous "EP" export was
+removed — no such format exists in NedGraphics; it was a placeholder.)
 
 ## What's inside
 
@@ -81,8 +100,9 @@ npm run preview
   shared theme token file (`src/styles/theme.js`)
 - K-means clustering for color/yarn extraction, written from scratch in
   `src/utils/colorUtils.js`
-- Export builders for JC5 (NedGraphics-compatible), EP (PostScript-style
-  electronic pattern), JSON, and CSV in `src/utils/exportFormats.js`
+- Export builders for JC5 (NedGraphics/Stäubli jacquard card — zoned header +
+  X/Y/E bit-planes), WIF (open loom-interchange standard), JSON, and CSV in
+  `src/utils/exportFormats.js`
 
 ## Surat market data
 
