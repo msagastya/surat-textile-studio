@@ -1,69 +1,65 @@
-// Generates the four export formats used by the Surat textile market.
+// Generates the export formats used by the Surat textile market.
 
+/**
+ * JC5 — NedGraphics/Stäubli electronic-jacquard card export.
+ *
+ * Structure reverse-engineered from NGJC5DLL20.dll + NGCard.dll (Jacquard 16):
+ *   • a zoned text header (BEGIN_ZONE … END_ZONE) carrying the TYPE / DESIGN / FORMAT zones,
+ *     plus the CCard geometry — X size (ends/warp), Y size (picks/weft), E size (extension hooks);
+ *   • a bit-plane card body: one row per pick, MSB-first, one lift bit per warp end.
+ *
+ * This is a documented, human-readable rendering of that layout (not the binary .crd the loom
+ * controller ingests). It faithfully mirrors the real zone/geometry/bit-plane model so it can be
+ * converted to a controller card, rather than the invented INI the app previously emitted.
+ */
 export function buildJC5(s) {
+  const matrix = s.weaveMatrix?.length ? s.weaveMatrix : [[0]];
+  const ySize = matrix.length;                 // picks
+  const xSize = matrix[0]?.length || 0;        // ends
+  const eSize = s.palette?.length || 1;        // extension hooks ≈ color/selection count
+
+  // Pack each pick row into MSB-first hex bytes (1 = warp up / lifted).
+  const packRow = (row) => {
+    let out = "";
+    for (let i = 0; i < row.length; i += 8) {
+      let byte = 0;
+      for (let b = 0; b < 8; b++) {
+        if (row[i + b]) byte |= 1 << (7 - b);
+      }
+      out += byte.toString(16).padStart(2, "0").toUpperCase();
+    }
+    return out;
+  };
+
   return [
-    "[JC5_HEADER]",
-    `DESIGN_NAME=${s.designName}`,
-    `VERSION=5.0`,
-    `FABRIC=${s.fabricType}`,
-    `MARKET=${s.targetMarket || "Surat"}`,
-    `ZARI=${s.zariType || "No Zari"}`,
-    `WIDTH_EPI=${s.epi || 72}`,
-    `HEIGHT_PPI=${s.ppi || 64}`,
-    `GSM=${s.gsm || "120-250"}`,
-    `DENIER=${s.denier || "150D"}`,
-    `REPEAT_W=${s.repeatW || 80}`,
-    `REPEAT_H=${s.repeatH || 80}`,
-    `DATE=${new Date().toISOString()}`,
-    `COLORS=${s.palette.length}`,
-    "",
-    "[COLOR_TABLE]",
+    "BEGIN_ZONE",
+    "    TYPE_ZONE     DESIGN",
+    "    DESIGN_ZONE",
+    `        DESIGN_NAME   ${s.designName}`,
+    `        FABRIC        ${s.fabricType}`,
+    `        MARKET        ${s.targetMarket || "Surat"}`,
+    `        ZARI          ${s.zariType || "No Zari"}`,
+    `        DATE          ${new Date().toISOString()}`,
+    "    FORMAT_ZONE",
+    "        CONTROLLER    STAUBLI_JC5",
+    `        X_SIZE        ${xSize}`,   // warp ends
+    `        Y_SIZE        ${ySize}`,   // weft picks
+    `        E_SIZE        ${eSize}`,   // extension hooks
+    `        EPI           ${s.epi || 72}`,
+    `        PPI           ${s.ppi || 64}`,
+    `        REPEAT        ${s.repeatW || xSize} x ${s.repeatH || ySize}`,
+    "    COLOR_ZONE",
     ...s.palette.map(
       (c, i) =>
-        `C${String(i).padStart(3, "0")}=${c.rgb.join(",")},${
+        `        COLOR ${String(i).padStart(3, "0")}  RGB ${c.rgb.join(" ")}  ${
           c.yarnName || `YARN_${i + 1}`
-        },${c.weaveType || "plain"},${c.percentage?.toFixed(2) || "0"}%`
+        }  ${c.percentage?.toFixed(1) || "0"}%`
     ),
+    "END_ZONE",
     "",
-    "[WEAVE_STRUCTURE]",
-    ...s.weaveMatrix.map((row, i) => `ROW${i}=${row.join(",")}`),
-    "",
-    "[YARN_USAGE_KG_PER_100M]",
-    ...s.palette.map((c, i) => `YARN${i}=${((c.percentage || 0) * 0.0085).toFixed(4)}`),
-    "",
-    "[END_JC5]",
-  ].join("\n");
-}
-
-export function buildEP(s) {
-  return [
-    `% EP Electronic Pattern — Surat Textile Studio`,
-    `% Design: ${s.designName} | Fabric: ${s.fabricType} | Zari: ${s.zariType || "No Zari"}`,
-    `% EPI: ${s.epi} | PPI: ${s.ppi} | GSM: ${s.gsm} | Denier: ${s.denier}`,
-    `% Target Market: ${s.targetMarket || "Surat"} | Date: ${new Date().toISOString()}`,
-    "%%BeginSetup",
-    `/FabricType (${s.fabricType}) def`,
-    `/ColorCount ${s.palette.length} def`,
-    `/RepeatWidth ${s.repeatW || 80} def`,
-    `/RepeatHeight ${s.repeatH || 80} def`,
-    `/EPI ${s.epi} def`,
-    `/PPI ${s.ppi} def`,
-    `/Zari (${s.zariType || "None"}) def`,
-    "%%EndSetup",
-    "%%BeginColorTable",
-    ...s.palette.map((c, i) => {
-      const [r, g, b] = c.rgb;
-      return `/Color${i} { ${(r / 255).toFixed(3)} ${(g / 255).toFixed(3)} ${(
-        b / 255
-      ).toFixed(3)} setrgbcolor } def % ${c.yarnName || `Yarn ${i + 1}`} ${
-        c.percentage?.toFixed(1)
-      }%`;
-    }),
-    "%%EndColorTable",
-    "%%BeginWeaveData",
-    ...s.weaveMatrix.slice(0, 8).map((row, i) => `/WeaveRow${i} [${row.join(" ")}] def`),
-    "%%EndWeaveData",
-    "%%EOF",
+    "BEGIN_CARD",
+    ...matrix.map((row) => packRow(row)),
+    "END_CARD",
   ].join("\n");
 }
 
@@ -228,6 +224,82 @@ export function buildWIF(s) {
     `; Market: ${s.targetMarket || "Surat"} — Exported ${new Date().toISOString()}`,
   ];
   return lines.join("\n");
+}
+
+/**
+ * Indexed 8-bit BMP export — the reliable interop path into NedGraphics.
+ *
+ * Jacquard 16 / Texcelle 16 import palette-indexed bitmaps (their own texture and
+ * graph-paper libraries are BMPs), so a correctly-formed 8-bit BMP with the design's
+ * palette is the format a real seat opens without any reverse-engineered container.
+ *
+ * Pixel source, in priority order:
+ *   1. the painted design grid (`grid`, 1-indexed into palette, 0 = ground)
+ *   2. the weave matrix (2 colors: warp up / weft up)
+ *   3. a palette stripe fallback, so an export always produces something.
+ *
+ * Returns a Uint8Array (binary). Palette index 0 is the ground; 1..N are palette colors.
+ */
+export function buildIndexedBMP(s) {
+  let w, h, pixelAt, table;
+
+  const pal = (s.palette || []).map((c) => c.rgb || [0, 0, 0]);
+
+  if (s.grid?.length && s.gridW > 0 && s.gridH > 0) {
+    w = s.gridW; h = s.gridH;
+    table = [[247, 244, 240], ...pal];                 // 0 = ground (warm off-white)
+    pixelAt = (x, y) => s.grid[y * w + x] || 0;         // grid already 1-indexed
+  } else if (s.weaveMatrix?.length && s.weaveMatrix[0]?.length) {
+    const m = s.weaveMatrix;
+    w = m[0].length; h = m.length;
+    const warp = pal[0] || [30, 24, 46];
+    const weft = pal[1] || [220, 214, 205];
+    table = [weft, warp];                               // 0 = weft up, 1 = warp up
+    pixelAt = (x, y) => (m[y][x] ? 1 : 0);
+  } else {
+    const n = Math.max(1, pal.length);
+    w = n * 16; h = 64;
+    table = [[247, 244, 240], ...pal];
+    pixelAt = (x) => Math.min(n, Math.floor(x / 16) + 1);
+  }
+
+  // 256-entry BGRA color table (BMP palettes are fixed at 2^bpp entries for 8-bit).
+  const palette = new Uint8Array(256 * 4);
+  for (let i = 0; i < 256; i++) {
+    const [r, g, b] = table[i] || [0, 0, 0];
+    palette[i * 4 + 0] = b; palette[i * 4 + 1] = g; palette[i * 4 + 2] = r; palette[i * 4 + 3] = 0;
+  }
+
+  const rowSize = (w + 3) & ~3;                         // rows padded to 4 bytes
+  const pixelBytes = rowSize * h;
+  const offset = 14 + 40 + 256 * 4;                     // headers + palette
+  const fileSize = offset + pixelBytes;
+
+  const buf = new Uint8Array(fileSize);
+  const dv = new DataView(buf.buffer);
+  // BITMAPFILEHEADER
+  buf[0] = 0x42; buf[1] = 0x4d;                         // 'BM'
+  dv.setUint32(2, fileSize, true);
+  dv.setUint32(10, offset, true);
+  // BITMAPINFOHEADER
+  dv.setUint32(14, 40, true);
+  dv.setInt32(18, w, true);
+  dv.setInt32(22, h, true);                             // positive = bottom-up rows
+  dv.setUint16(26, 1, true);                            // planes
+  dv.setUint16(28, 8, true);                            // bits per pixel
+  dv.setUint32(30, 0, true);                            // BI_RGB (uncompressed)
+  dv.setUint32(34, pixelBytes, true);
+  dv.setInt32(38, 2835, true);                          // ~72 DPI x
+  dv.setInt32(42, 2835, true);                          // ~72 DPI y
+  dv.setUint32(46, 256, true);                          // colors used
+  dv.setUint32(50, 0, true);                            // all important
+  buf.set(palette, 54);
+  // Pixel data, bottom-up
+  for (let y = 0; y < h; y++) {
+    const dst = offset + (h - 1 - y) * rowSize;
+    for (let x = 0; x < w; x++) buf[dst + x] = pixelAt(x, y) & 0xff;
+  }
+  return buf;
 }
 
 /** Trigger a browser download for the given text content. */

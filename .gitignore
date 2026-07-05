@@ -6,3 +6,12 @@ dist/
 .env.local
 .vercel/
 .vercel
+
+# Never commit the pirated NedGraphics installer bundle (used only as a data source)
+2016 SOFTWARE.zip
+*.zip
+
+# Design-sync tooling scaffolding — not part of the app (kept locally, never committed)
+.ds-sync/
+ds-bundle/
+.design-sync/
