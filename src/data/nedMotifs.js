@@ -36,7 +36,7 @@ export const NED_MOTIFS = [
   { id: "QuiltersStar_10_1", family: "QuiltersStar", repeat: 10, w: 91, h: 256, bpp: 8, colors: 3 },
   { id: "QuiltersStar_12_1", family: "QuiltersStar", repeat: 12, w: 77, h: 256, bpp: 8, colors: 3 },
   { id: "QuiltersStar_16_1", family: "QuiltersStar", repeat: 16, w: 59, h: 256, bpp: 8, colors: 3 },
-  { id: "Runner_with_flower", family: "Runner_with_flower", repeat: None, w: 0, h: 0, bpp: 0, colors: 0 },
+  { id: "Runner_with_flower", family: "Runner_with_flower", repeat: null, w: 0, h: 0, bpp: 0, colors: 0 },
   { id: "Scallop_06_1", family: "Scallop", repeat: 6, w: 229, h: 256, bpp: 8, colors: 3 },
   { id: "Scallop_08_1", family: "Scallop", repeat: 8, w: 184, h: 256, bpp: 8, colors: 3 },
   { id: "Scallop_10_1", family: "Scallop", repeat: 10, w: 153, h: 256, bpp: 8, colors: 3 },
